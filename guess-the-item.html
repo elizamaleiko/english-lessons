@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess the Item!</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1ec;
+    --white: #ffffff;
+    --ink: #2b2318;
+    --ink-mid: #6b5744;
+    --ink-light: #a89280;
+    --line: #ddd5cc;
+    --tag-bg: #ede8e2;
+    --sand: #c8b89a;
+    --sage: #8faa8b;
+    --steel: #9aafbf;
+    --terra: #c49a8a;
+    --yellow: #e8c84a;
+    --correct: #8faa8b;
+    --wrong: #c49a8a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    padding: 36px 20px 70px;
+  }
+
+  .page { max-width: 820px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 28px; }
+  .unit-tag {
+    display: inline-block; background: var(--ink); color: var(--bg);
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 4px; margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(34px, 6vw, 56px); color: var(--ink); line-height: 1.05; margin-bottom: 8px;
+  }
+  .header h1 em { font-style: italic; color: var(--ink-mid); }
+  .header-sub { font-size: 13px; color: var(--ink-light); font-weight: 300; margin-bottom: 16px; }
+
+  .stars-row { display: flex; justify-content: center; gap: 18px; margin-bottom: 16px; }
+  .star { color: var(--yellow); display: inline-block; animation: spin 7s linear infinite; }
+  .star-sm { font-size: 14px; animation-duration: 10s; }
+  .star-md { font-size: 22px; }
+  .star-lg { font-size: 30px; animation-duration: 14s; }
+  @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+  /* INSTRUCTION */
+  .instruction-box {
+    background: var(--yellow); border-radius: 12px;
+    padding: 12px 22px; margin-bottom: 24px; text-align: center;
+    font-size: 13.5px; color: var(--ink); line-height: 1.5;
+  }
+
+  /* WORD BANK */
+  .word-bank {
+    background: var(--white); border: 1.5px solid var(--line);
+    border-radius: 16px; padding: 16px 20px; margin-bottom: 28px;
+  }
+  .wb-label {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-light); margin-bottom: 12px; display: block; text-align: center;
+  }
+  .wb-section { margin-bottom: 12px; }
+  .wb-section-label {
+    font-size: 11px; font-weight: 600; color: var(--ink-mid);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px; display: block;
+  }
+  .wb-words { display: flex; flex-wrap: wrap; gap: 7px; }
+  .wb-word {
+    background: var(--tag-bg); border: 1.5px solid var(--line);
+    border-radius: 8px; padding: 5px 13px;
+    font-size: 12.5px; color: var(--ink-mid);
+    transition: all 0.2s;
+  }
+  .wb-word.used { opacity: 0.35; text-decoration: line-through; }
+
+  /* SCORE */
+  .score-bar {
+    background: var(--white); border: 1.5px solid var(--line);
+    border-radius: 14px; padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .score-left { display: flex; align-items: center; gap: 16px; }
+  .score-label { font-size: 11px; color: var(--ink-light); letter-spacing: 1.5px; text-transform: uppercase; }
+  .score-num {
+    font-family: 'Playfair Display', serif; font-size: 32px; color: var(--ink); line-height: 1;
+  }
+  .score-total { font-size: 12px; color: var(--ink-light); }
+  .progress-bar {
+    flex: 1; height: 6px; background: var(--line); border-radius: 10px; overflow: hidden; min-width: 100px;
+  }
+  .progress-fill {
+    height: 100%; background: var(--sage); border-radius: 10px;
+    transition: width 0.4s ease; width: 0%;
+  }
+  .reset-btn {
+    background: var(--tag-bg); border: 1.5px solid var(--line);
+    border-radius: 8px; padding: 6px 14px; font-size: 12px;
+    color: var(--ink-mid); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.2s;
+  }
+  .reset-btn:hover { background: #e8e0d8; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    background: var(--white); border: 1.5px solid var(--line);
+    border-radius: 10px; padding: 7px 16px; font-size: 13px;
+    font-weight: 500; color: var(--ink-mid); cursor: pointer;
+    transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .tab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  }
+  @media(max-width:560px){ .cards-grid { grid-template-columns: 1fr; } }
+
+  /* ITEM CARD */
+  .item-card {
+    background: var(--white); border: 1.5px solid var(--line);
+    border-radius: 16px; overflow: hidden;
+    transition: transform 0.15s;
+  }
+  .item-card:hover { transform: translateY(-2px); }
+  .item-card.correct-card { border-color: var(--correct); }
+  .item-card.wrong-card { border-color: var(--wrong); }
+
+  .card-top {
+    padding: 16px 18px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+
+  .card-num {
+    font-family: 'Playfair Display', serif; font-size: 24px;
+    font-style: italic; color: rgba(43,35,24,0.15); line-height: 1; min-width: 22px;
+  }
+
+  .card-category {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 6px; font-weight: 600; white-space: nowrap;
+  }
+  .cat-clothes { background: #e8f2e4; color: #3a6030; }
+  .cat-access  { background: #e4eef8; color: #2a5070; }
+
+  .card-description {
+    padding: 0 18px 14px;
+    font-size: 13.5px; color: var(--ink-mid); line-height: 1.65;
+  }
+
+  .card-description em {
+    font-style: italic; color: var(--ink); font-weight: 500;
+  }
+
+  /* ANSWER AREA */
+  .answer-area { padding: 0 16px 16px; }
+
+  .answer-options {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+  }
+
+  .answer-opt {
+    background: var(--tag-bg); border: 1.5px solid var(--line);
+    border-radius: 8px; padding: 6px 14px; font-size: 12.5px;
+    color: var(--ink-mid); cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .answer-opt:hover:not(.disabled) { background: #e8e0d8; border-color: var(--ink-light); }
+  .answer-opt.selected-correct {
+    background: #e8f2e4; border-color: var(--correct); color: #3a6030; font-weight: 600;
+  }
+  .answer-opt.selected-wrong {
+    background: #f8eee8; border-color: var(--terra); color: #904030;
+    text-decoration: line-through; opacity: 0.7;
+  }
+  .answer-opt.show-correct {
+    background: #e8f2e4; border-color: var(--correct); color: #3a6030; font-weight: 600;
+  }
+  .answer-opt.disabled { pointer-events: none; }
+
+  .feedback {
+    font-size: 12px; line-height: 1.5; padding: 8px 12px;
+    border-radius: 8px; display: none;
+  }
+  .feedback.correct { background: #e8f2e4; color: #3a6030; display: block; }
+  .feedback.wrong   { background: #f8eee8; color: #904030; display: block; }
+
+  /* FINAL SCREEN */
+  .final-screen {
+    display: none; background: var(--ink); border-radius: 18px;
+    padding: 32px; text-align: center; color: var(--bg); margin-top: 20px;
+  }
+  .final-screen.shown { display: block; }
+  .final-emoji { font-size: 48px; margin-bottom: 12px; }
+  .final-title {
+    font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 8px;
+  }
+  .final-score { font-size: 16px; opacity: 0.7; margin-bottom: 20px; }
+  .final-msg { font-size: 14px; opacity: 0.8; line-height: 1.6; margin-bottom: 20px; }
+  .final-btn {
+    background: var(--bg); color: var(--ink); border: none;
+    border-radius: 10px; padding: 12px 28px; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .final-btn:hover { opacity: 0.8; }
+
+  .footer-row { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 28px; opacity: 0.35; }
+  .footer-dot { width: 4px; height: 4px; background: var(--ink); border-radius: 50%; }
+  .footer-text { font-size: 11px; color: var(--ink); letter-spacing: 1.5px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="unit-tag">Vocabulary · Unit 6A</div>
+    <h1>Guess <em>the item!</em></h1>
+    <p class="header-sub">Clothes & Accessories · Read the description → find the word</p>
+    <div class="stars-row">
+      <span class="star star-lg">✦</span>
+      <span class="star star-sm">✦</span>
+      <span class="star star-md">✦</span>
+    </div>
+  </div>
+
+  <!-- INSTRUCTION -->
+  <div class="instruction-box">
+    📖 Read each description carefully → choose the correct word from the options below each card
+  </div>
+
+  <!-- WORD BANK -->
+  <div class="word-bank">
+    <span class="wb-label">Word Bank ✦</span>
+    <div class="wb-section">
+      <span class="wb-section-label">👔 Clothes</span>
+      <div class="wb-words">
+        <span class="wb-word" id="w-tie">tie</span>
+        <span class="wb-word" id="w-trainers">trainers</span>
+        <span class="wb-word" id="w-tshirt">T-shirt</span>
+        <span class="wb-word" id="w-trousers">trousers</span>
+        <span class="wb-word" id="w-scarf">scarf</span>
+        <span class="wb-word" id="w-shorts">shorts</span>
+        <span class="wb-word" id="w-dress">dress</span>
+        <span class="wb-word" id="w-top">top</span>
+        <span class="wb-word" id="w-jumper">jumper</span>
+        <span class="wb-word" id="w-jeans">jeans</span>
+        <span class="wb-word" id="w-socks">socks</span>
+        <span class="wb-word" id="w-cap">cap</span>
+        <span class="wb-word" id="w-hat">hat</span>
+        <span class="wb-word" id="w-suit">suit</span>
+        <span class="wb-word" id="w-coat">coat</span>
+        <span class="wb-word" id="w-boots">boots</span>
+        <span class="wb-word" id="w-hoodie">hoodie</span>
+        <span class="wb-word" id="w-skirt">skirt</span>
+        <span class="wb-word" id="w-shirt">shirt</span>
+        <span class="wb-word" id="w-jacket">jacket</span>
+      </div>
+    </div>
+    <div class="wb-section">
+      <span class="wb-section-label">💍 Accessories</span>
+      <div class="wb-words">
+        <span class="wb-word" id="w-necklace">necklace</span>
+        <span class="wb-word" id="w-glasses">glasses</span>
+        <span class="wb-word" id="w-sunglasses">sunglasses</span>
+        <span class="wb-word" id="w-bracelet">bracelet</span>
+        <span class="wb-word" id="w-watch">watch</span>
+        <span class="wb-word" id="w-ring">ring</span>
+        <span class="wb-word" id="w-earrings">earrings</span>
+        <span class="wb-word" id="w-belt">belt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-bar">
+    <div class="score-left">
+      <div>
+        <div class="score-label">Score</div>
+        <div class="score-num" id="scoreNum">0</div>
+      </div>
+      <div>
+        <div class="score-total" id="scoreTotal">0 / 20</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchSection('clothes', this)">👔 Clothes</button>
+    <button class="tab" onclick="switchSection('access', this)">💍 Accessories</button>
+  </div>
+
+  <!-- CLOTHES SECTION -->
+  <div class="section active" id="clothes">
+    <div class="cards-grid">
+
+      <!-- 1. tie -->
+      <div class="item-card" id="card-1">
+        <div class="card-top">
+          <span class="card-num">1</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this around your <em>neck</em>, on top of a shirt.
+          It is long and pointed at the bottom.
+          Men often wear it to work or at formal events.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'tie','1','scarf')">scarf</button>
+            <button class="answer-opt" onclick="check(this,'tie','1','belt')">belt</button>
+            <button class="answer-opt" onclick="check(this,'tie','1','tie')">tie</button>
+            <button class="answer-opt" onclick="check(this,'tie','1','shirt')">shirt</button>
+          </div>
+          <div class="feedback" id="fb-1"></div>
+        </div>
+      </div>
+
+      <!-- 2. trainers -->
+      <div class="item-card" id="card-2">
+        <div class="card-top">
+          <span class="card-num">2</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>feet</em>.
+          They are comfortable and sporty.
+          People wear them to the gym, school or just every day.
+          In American English they are called <em>sneakers</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'trainers','2','boots')">boots</button>
+            <button class="answer-opt" onclick="check(this,'trainers','2','trainers')">trainers</button>
+            <button class="answer-opt" onclick="check(this,'trainers','2','socks')">socks</button>
+            <button class="answer-opt" onclick="check(this,'trainers','2','shorts')">shorts</button>
+          </div>
+          <div class="feedback" id="fb-2"></div>
+        </div>
+      </div>
+
+      <!-- 3. T-shirt -->
+      <div class="item-card" id="card-3">
+        <div class="card-top">
+          <span class="card-num">3</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is a simple top with <em>short sleeves</em> and no collar, no buttons.
+          You pull it over your head.
+          Its name comes from its shape — it looks like the letter <em>T</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'tshirt','3','shirt')">shirt</button>
+            <button class="answer-opt" onclick="check(this,'tshirt','3','jumper')">jumper</button>
+            <button class="answer-opt" onclick="check(this,'tshirt','3','hoodie')">hoodie</button>
+            <button class="answer-opt" onclick="check(this,'tshirt','3','tshirt')">T-shirt</button>
+          </div>
+          <div class="feedback" id="fb-3"></div>
+        </div>
+      </div>
+
+      <!-- 4. trousers -->
+      <div class="item-card" id="card-4">
+        <div class="card-top">
+          <span class="card-num">4</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>legs</em>. They are long — they go down to your ankles.
+          Jeans are one type of these.
+          In American English they are called <em>pants</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'trousers','4','shorts')">shorts</button>
+            <button class="answer-opt" onclick="check(this,'trousers','4','skirt')">skirt</button>
+            <button class="answer-opt" onclick="check(this,'trousers','4','trousers')">trousers</button>
+            <button class="answer-opt" onclick="check(this,'trousers','4','jeans')">jeans</button>
+          </div>
+          <div class="feedback" id="fb-4"></div>
+        </div>
+      </div>
+
+      <!-- 5. scarf -->
+      <div class="item-card" id="card-5">
+        <div class="card-top">
+          <span class="card-num">5</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this around your <em>neck</em> when it is cold.
+          It is long and soft — usually made of wool.
+          It keeps you warm in autumn and winter.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'scarf','5','tie')">tie</button>
+            <button class="answer-opt" onclick="check(this,'scarf','5','scarf')">scarf</button>
+            <button class="answer-opt" onclick="check(this,'scarf','5','coat')">coat</button>
+            <button class="answer-opt" onclick="check(this,'scarf','5','belt')">belt</button>
+          </div>
+          <div class="feedback" id="fb-5"></div>
+        </div>
+      </div>
+
+      <!-- 6. shorts -->
+      <div class="item-card" id="card-6">
+        <div class="card-top">
+          <span class="card-num">6</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>legs</em> when it is hot.
+          They are short — they stop above the knee.
+          People wear them at the beach, to the gym or on summer days.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'shorts','6','skirt')">skirt</button>
+            <button class="answer-opt" onclick="check(this,'shorts','6','trousers')">trousers</button>
+            <button class="answer-opt" onclick="check(this,'shorts','6','jeans')">jeans</button>
+            <button class="answer-opt" onclick="check(this,'shorts','6','shorts')">shorts</button>
+          </div>
+          <div class="feedback" id="fb-6"></div>
+        </div>
+      </div>
+
+      <!-- 7. dress -->
+      <div class="item-card" id="card-7">
+        <div class="card-top">
+          <span class="card-num">7</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is one piece of clothing — it covers both the <em>top and bottom</em> of the body.
+          It can be short or long.
+          People often wear it to parties or in summer.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'dress','7','skirt')">skirt</button>
+            <button class="answer-opt" onclick="check(this,'dress','7','top')">top</button>
+            <button class="answer-opt" onclick="check(this,'dress','7','dress')">dress</button>
+            <button class="answer-opt" onclick="check(this,'dress','7','suit')">suit</button>
+          </div>
+          <div class="feedback" id="fb-7"></div>
+        </div>
+      </div>
+
+      <!-- 8. jumper -->
+      <div class="item-card" id="card-8">
+        <div class="card-top">
+          <span class="card-num">8</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is a <em>warm top</em> with long sleeves.
+          You pull it over your head — there are no buttons or zip.
+          In American English it is called a <em>sweater</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'jumper','8','hoodie')">hoodie</button>
+            <button class="answer-opt" onclick="check(this,'jumper','8','jacket')">jacket</button>
+            <button class="answer-opt" onclick="check(this,'jumper','8','jumper')">jumper</button>
+            <button class="answer-opt" onclick="check(this,'jumper','8','coat')">coat</button>
+          </div>
+          <div class="feedback" id="fb-8"></div>
+        </div>
+      </div>
+
+      <!-- 9. jeans -->
+      <div class="item-card" id="card-9">
+        <div class="card-top">
+          <span class="card-num">9</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          These are trousers made of <em>denim</em> — a strong blue fabric.
+          Almost everyone has a pair.
+          They can be skinny, wide or straight.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'jeans','9','trousers')">trousers</button>
+            <button class="answer-opt" onclick="check(this,'jeans','9','jeans')">jeans</button>
+            <button class="answer-opt" onclick="check(this,'jeans','9','shorts')">shorts</button>
+            <button class="answer-opt" onclick="check(this,'jeans','9','suit')">suit</button>
+          </div>
+          <div class="feedback" id="fb-9"></div>
+        </div>
+      </div>
+
+      <!-- 10. socks -->
+      <div class="item-card" id="card-10">
+        <div class="card-top">
+          <span class="card-num">10</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>feet</em> — under your shoes.
+          They are soft and come in pairs.
+          Without them, shoes can feel very uncomfortable!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'socks','10','trainers')">trainers</button>
+            <button class="answer-opt" onclick="check(this,'socks','10','boots')">boots</button>
+            <button class="answer-opt" onclick="check(this,'socks','10','socks')">socks</button>
+            <button class="answer-opt" onclick="check(this,'socks','10','shorts')">shorts</button>
+          </div>
+          <div class="feedback" id="fb-10"></div>
+        </div>
+      </div>
+
+      <!-- 11. cap -->
+      <div class="item-card" id="card-11">
+        <div class="card-top">
+          <span class="card-num">11</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this on your <em>head</em>.
+          It has a flat stiff <em>brim</em> at the front.
+          Sporty people and skaters often wear it — forwards or backwards.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'cap','11','hat')">hat</button>
+            <button class="answer-opt" onclick="check(this,'cap','11','scarf')">scarf</button>
+            <button class="answer-opt" onclick="check(this,'cap','11','cap')">cap</button>
+            <button class="answer-opt" onclick="check(this,'cap','11','hoodie')">hoodie</button>
+          </div>
+          <div class="feedback" id="fb-11"></div>
+        </div>
+      </div>
+
+      <!-- 12. hat -->
+      <div class="item-card" id="card-12">
+        <div class="card-top">
+          <span class="card-num">12</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this on your <em>head</em> too — but it is different from a cap.
+          It has a brim <em>all the way around</em>.
+          Cowboys, witches and stylish people wear it.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'hat','12','cap')">cap</button>
+            <button class="answer-opt" onclick="check(this,'hat','12','hat')">hat</button>
+            <button class="answer-opt" onclick="check(this,'hat','12','hoodie')">hoodie</button>
+            <button class="answer-opt" onclick="check(this,'hat','12','scarf')">scarf</button>
+          </div>
+          <div class="feedback" id="fb-12"></div>
+        </div>
+      </div>
+
+      <!-- 13. suit -->
+      <div class="item-card" id="card-13">
+        <div class="card-top">
+          <span class="card-num">13</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is a <em>set of matching clothes</em> — a jacket and trousers in the same colour and fabric.
+          People wear it to work, weddings or important meetings.
+          James Bond always wears one.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'suit','13','jacket')">jacket</button>
+            <button class="answer-opt" onclick="check(this,'suit','13','coat')">coat</button>
+            <button class="answer-opt" onclick="check(this,'suit','13','dress')">dress</button>
+            <button class="answer-opt" onclick="check(this,'suit','13','suit')">suit</button>
+          </div>
+          <div class="feedback" id="fb-13"></div>
+        </div>
+      </div>
+
+      <!-- 14. coat -->
+      <div class="item-card" id="card-14">
+        <div class="card-top">
+          <span class="card-num">14</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this <em>over</em> all your other clothes when it is cold outside.
+          It is long — usually below the hips.
+          You wear it in autumn and winter to stay warm.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'coat','14','jacket')">jacket</button>
+            <button class="answer-opt" onclick="check(this,'coat','14','jumper')">jumper</button>
+            <button class="answer-opt" onclick="check(this,'coat','14','coat')">coat</button>
+            <button class="answer-opt" onclick="check(this,'coat','14','hoodie')">hoodie</button>
+          </div>
+          <div class="feedback" id="fb-14"></div>
+        </div>
+      </div>
+
+      <!-- 15. boots -->
+      <div class="item-card" id="card-15">
+        <div class="card-top">
+          <span class="card-num">15</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>feet</em> — they cover your ankle and sometimes go up to the knee.
+          They are great for cold or rainy weather.
+          Cowboys and rock stars love them!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'boots','15','trainers')">trainers</button>
+            <button class="answer-opt" onclick="check(this,'boots','15','socks')">socks</button>
+            <button class="answer-opt" onclick="check(this,'boots','15','boots')">boots</button>
+            <button class="answer-opt" onclick="check(this,'boots','15','shoes')">shoes</button>
+          </div>
+          <div class="feedback" id="fb-15"></div>
+        </div>
+      </div>
+
+      <!-- 16. hoodie -->
+      <div class="item-card" id="card-16">
+        <div class="card-top">
+          <span class="card-num">16</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is a warm, casual top — like a jumper but with one special thing:
+          it has a <em>hood</em> attached to it.
+          Teenagers and skaters love wearing it.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'hoodie','16','jumper')">jumper</button>
+            <button class="answer-opt" onclick="check(this,'hoodie','16','coat')">coat</button>
+            <button class="answer-opt" onclick="check(this,'hoodie','16','hoodie')">hoodie</button>
+            <button class="answer-opt" onclick="check(this,'hoodie','16','jacket')">jacket</button>
+          </div>
+          <div class="feedback" id="fb-16"></div>
+        </div>
+      </div>
+
+      <!-- 17. skirt -->
+      <div class="item-card" id="card-17">
+        <div class="card-top">
+          <span class="card-num">17</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this on the <em>lower part</em> of your body.
+          It has no legs — it is open at the bottom.
+          It can be mini, midi or maxi — short, medium or long.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'skirt','17','dress')">dress</button>
+            <button class="answer-opt" onclick="check(this,'skirt','17','shorts')">shorts</button>
+            <button class="answer-opt" onclick="check(this,'skirt','17','skirt')">skirt</button>
+            <button class="answer-opt" onclick="check(this,'skirt','17','trousers')">trousers</button>
+          </div>
+          <div class="feedback" id="fb-17"></div>
+        </div>
+      </div>
+
+      <!-- 18. shirt -->
+      <div class="item-card" id="card-18">
+        <div class="card-top">
+          <span class="card-num">18</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This top has a <em>collar</em> and <em>buttons</em> down the front.
+          It can be plain, striped or checked.
+          People wear it for work or casually — like with jeans.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'shirt','18','tshirt')">T-shirt</button>
+            <button class="answer-opt" onclick="check(this,'shirt','18','shirt')">shirt</button>
+            <button class="answer-opt" onclick="check(this,'shirt','18','top')">top</button>
+            <button class="answer-opt" onclick="check(this,'shirt','18','jumper')">jumper</button>
+          </div>
+          <div class="feedback" id="fb-18"></div>
+        </div>
+      </div>
+
+      <!-- 19. jacket -->
+      <div class="item-card" id="card-19">
+        <div class="card-top">
+          <span class="card-num">19</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          You wear this <em>over</em> your top or shirt.
+          It is shorter than a coat — it usually ends at the hips.
+          It often has a zip or buttons and can be denim, leather or casual.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'jacket','19','coat')">coat</button>
+            <button class="answer-opt" onclick="check(this,'jacket','19','suit')">suit</button>
+            <button class="answer-opt" onclick="check(this,'jacket','19','hoodie')">hoodie</button>
+            <button class="answer-opt" onclick="check(this,'jacket','19','jacket')">jacket</button>
+          </div>
+          <div class="feedback" id="fb-19"></div>
+        </div>
+      </div>
+
+      <!-- 20. top -->
+      <div class="item-card" id="card-20">
+        <div class="card-top">
+          <span class="card-num">20</span>
+          <span class="card-category cat-clothes">Clothes</span>
+        </div>
+        <div class="card-description">
+          This is any piece of clothing you wear on the <em>upper part</em> of your body.
+          T-shirts, shirts and jumpers are all types of this.
+          It is also the word for a simple light garment — like a <em>tank top</em> or <em>crop top</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'top','20','shirt')">shirt</button>
+            <button class="answer-opt" onclick="check(this,'top','20','jumper')">jumper</button>
+            <button class="answer-opt" onclick="check(this,'top','20','top')">top</button>
+            <button class="answer-opt" onclick="check(this,'top','20','dress')">dress</button>
+          </div>
+          <div class="feedback" id="fb-20"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACCESSORIES SECTION -->
+  <div class="section" id="access">
+    <div class="cards-grid">
+
+      <!-- 21. necklace -->
+      <div class="item-card" id="card-21">
+        <div class="card-top">
+          <span class="card-num">21</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear this around your <em>neck</em>.
+          It is a chain or string — sometimes with a small pendant hanging from it.
+          It can be gold, silver or made of beads.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'necklace','21','bracelet')">bracelet</button>
+            <button class="answer-opt" onclick="check(this,'necklace','21','ring')">ring</button>
+            <button class="answer-opt" onclick="check(this,'necklace','21','necklace')">necklace</button>
+            <button class="answer-opt" onclick="check(this,'necklace','21','earrings')">earrings</button>
+          </div>
+          <div class="feedback" id="fb-21"></div>
+        </div>
+      </div>
+
+      <!-- 22. glasses -->
+      <div class="item-card" id="card-22">
+        <div class="card-top">
+          <span class="card-num">22</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>face</em>, in front of your eyes.
+          They help you see better.
+          They have two lenses and two arms that rest on your ears.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'glasses','22','sunglasses')">sunglasses</button>
+            <button class="answer-opt" onclick="check(this,'glasses','22','glasses')">glasses</button>
+            <button class="answer-opt" onclick="check(this,'glasses','22','watch')">watch</button>
+            <button class="answer-opt" onclick="check(this,'glasses','22','ring')">ring</button>
+          </div>
+          <div class="feedback" id="fb-22"></div>
+        </div>
+      </div>
+
+      <!-- 23. sunglasses -->
+      <div class="item-card" id="card-23">
+        <div class="card-top">
+          <span class="card-num">23</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          These look like glasses but they have <em>dark lenses</em>.
+          You wear them outside when the sun is bright.
+          They are also very fashionable — even on cloudy days!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'sunglasses','23','glasses')">glasses</button>
+            <button class="answer-opt" onclick="check(this,'sunglasses','23','watch')">watch</button>
+            <button class="answer-opt" onclick="check(this,'sunglasses','23','sunglasses')">sunglasses</button>
+            <button class="answer-opt" onclick="check(this,'sunglasses','23','bracelet')">bracelet</button>
+          </div>
+          <div class="feedback" id="fb-23"></div>
+        </div>
+      </div>
+
+      <!-- 24. bracelet -->
+      <div class="item-card" id="card-24">
+        <div class="card-top">
+          <span class="card-num">24</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear this around your <em>wrist</em>.
+          It is a small band or chain — it can be gold, silver, leather or beads.
+          Friends sometimes give them to each other as gifts.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'bracelet','24','ring')">ring</button>
+            <button class="answer-opt" onclick="check(this,'bracelet','24','necklace')">necklace</button>
+            <button class="answer-opt" onclick="check(this,'bracelet','24','watch')">watch</button>
+            <button class="answer-opt" onclick="check(this,'bracelet','24','bracelet')">bracelet</button>
+          </div>
+          <div class="feedback" id="fb-24"></div>
+        </div>
+      </div>
+
+      <!-- 25. watch -->
+      <div class="item-card" id="card-25">
+        <div class="card-top">
+          <span class="card-num">25</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear this on your <em>wrist</em> to tell the time.
+          It has a small clock face and a strap — leather, metal or rubber.
+          Before phones, everyone wore one!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'watch','25','bracelet')">bracelet</button>
+            <button class="answer-opt" onclick="check(this,'watch','25','ring')">ring</button>
+            <button class="answer-opt" onclick="check(this,'watch','25','watch')">watch</button>
+            <button class="answer-opt" onclick="check(this,'watch','25','belt')">belt</button>
+          </div>
+          <div class="feedback" id="fb-25"></div>
+        </div>
+      </div>
+
+      <!-- 26. ring -->
+      <div class="item-card" id="card-26">
+        <div class="card-top">
+          <span class="card-num">26</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear this on your <em>finger</em>.
+          It is a small circle of metal — gold, silver or with a stone.
+          Married people often wear a special one called a <em>wedding ring</em>.
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'ring','26','bracelet')">bracelet</button>
+            <button class="answer-opt" onclick="check(this,'ring','26','ring')">ring</button>
+            <button class="answer-opt" onclick="check(this,'ring','26','necklace')">necklace</button>
+            <button class="answer-opt" onclick="check(this,'ring','26','earrings')">earrings</button>
+          </div>
+          <div class="feedback" id="fb-26"></div>
+        </div>
+      </div>
+
+      <!-- 27. earrings -->
+      <div class="item-card" id="card-27">
+        <div class="card-top">
+          <span class="card-num">27</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear these on your <em>ears</em>.
+          They always come in pairs.
+          They can be small studs or big hoops — gold ones are very trendy right now!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'earrings','27','ring')">ring</button>
+            <button class="answer-opt" onclick="check(this,'earrings','27','necklace')">necklace</button>
+            <button class="answer-opt" onclick="check(this,'earrings','27','bracelet')">bracelet</button>
+            <button class="answer-opt" onclick="check(this,'earrings','27','earrings')">earrings</button>
+          </div>
+          <div class="feedback" id="fb-27"></div>
+        </div>
+      </div>
+
+      <!-- 28. belt -->
+      <div class="item-card" id="card-28">
+        <div class="card-top">
+          <span class="card-num">28</span>
+          <span class="card-category cat-access">Accessory</span>
+        </div>
+        <div class="card-description">
+          You wear this around your <em>waist</em>.
+          It goes through the loops of your trousers or jeans.
+          It has a buckle at the front and keeps your trousers from falling down!
+        </div>
+        <div class="answer-area">
+          <div class="answer-options">
+            <button class="answer-opt" onclick="check(this,'belt','28','scarf')">scarf</button>
+            <button class="answer-opt" onclick="check(this,'belt','28','tie')">tie</button>
+            <button class="answer-opt" onclick="check(this,'belt','28','watch')">watch</button>
+            <button class="answer-opt" onclick="check(this,'belt','28','belt')">belt</button>
+          </div>
+          <div class="feedback" id="fb-28"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="final-screen" id="finalScreen">
+    <div class="final-emoji" id="finalEmoji">🎉</div>
+    <div class="final-title" id="finalTitle">Well done!</div>
+    <div class="final-score" id="finalScore"></div>
+    <div class="final-msg" id="finalMsg"></div>
+    <button class="final-btn" onclick="resetAll()">↺ Try again</button>
+  </div>
+
+  <div class="footer-row">
+    <div class="footer-dot"></div>
+    <span class="footer-text">Vocabulary · Clothes & Accessories · Unit 6A</span>
+    <div class="footer-dot"></div>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 28;
+  let answered = new Set();
+  let correct = 0;
+
+  const feedbacks = {
+    'tie':        '✅ Right! A tie is worn around the neck on top of a shirt — often at formal events.',
+    'trainers':   '✅ Correct! Trainers = sneakers in American English. Sporty shoes for everyday wear.',
+    'tshirt':     '✅ Yes! A T-shirt has short sleeves, no collar and no buttons.',
+    'trousers':   '✅ Correct! Trousers are long leg coverings. In American English: pants.',
+    'scarf':      '✅ Right! A scarf keeps your neck warm. Usually soft and long.',
+    'shorts':     '✅ Yes! Shorts are short — they stop above the knee.',
+    'dress':      '✅ Correct! A dress covers the top AND bottom in one piece.',
+    'jumper':     '✅ Right! A jumper = sweater in American English. Warm, no buttons.',
+    'jeans':      '✅ Yes! Jeans are trousers made of denim.',
+    'socks':      '✅ Correct! Socks go on your feet, under your shoes.',
+    'cap':        '✅ Right! A cap has a brim only at the front.',
+    'hat':        '✅ Yes! A hat has a brim all the way around — like a cowboy hat.',
+    'suit':       '✅ Correct! A suit is a matching jacket and trousers set.',
+    'coat':       '✅ Right! A coat is long and worn over everything in cold weather.',
+    'boots':      '✅ Yes! Boots cover the ankle and sometimes the knee.',
+    'hoodie':     '✅ Correct! A hoodie is like a jumper — but with a hood!',
+    'skirt':      '✅ Right! A skirt covers the lower body with no legs.',
+    'shirt':      '✅ Yes! A shirt has a collar and buttons. Can be checked or striped.',
+    'jacket':     '✅ Correct! A jacket is shorter than a coat — ends at the hips.',
+    'top':        '✅ Right! A top is anything worn on the upper body — it\'s a broad word.',
+    'necklace':   '✅ Correct! A necklace goes around the neck — often with a pendant.',
+    'glasses':    '✅ Right! Glasses help you see better. Sunglasses have dark lenses.',
+    'sunglasses': '✅ Yes! Sunglasses protect your eyes from the sun — and look great!',
+    'bracelet':   '✅ Correct! A bracelet goes around your wrist.',
+    'watch':      '✅ Right! A watch tells the time — and is a stylish accessory.',
+    'ring':       '✅ Yes! A ring goes on your finger. Wedding rings are a special type.',
+    'earrings':   '✅ Correct! Earrings go on your ears — always in pairs.',
+    'belt':       '✅ Right! A belt goes around your waist through trouser loops.',
+  };
+
+  function check(btn, correctAnswer, cardNum, chosen) {
+    if (answered.has(cardNum)) return;
+    answered.add(cardNum);
+
+    const card = document.getElementById('card-' + cardNum);
+    const fb = document.getElementById('fb-' + cardNum);
+    const allBtns = btn.closest('.answer-options').querySelectorAll('.answer-opt');
+
+    allBtns.forEach(b => b.classList.add('disabled'));
+
+    if (chosen === correctAnswer) {
+      btn.classList.add('selected-correct');
+      card.classList.add('correct-card');
+      fb.textContent = feedbacks[correctAnswer] || '✅ Correct!';
+      fb.className = 'feedback correct';
+      correct++;
+    } else {
+      btn.classList.add('selected-wrong');
+      card.classList.add('wrong-card');
+      allBtns.forEach(b => {
+        if (b.getAttribute('onclick').includes("'" + correctAnswer + "'")) {
+          b.classList.add('show-correct');
+        }
+      });
+      fb.textContent = '❌ Not quite. The answer is: ' + correctAnswer.replace('tshirt', 'T-shirt');
+      fb.className = 'feedback wrong';
+    }
+
+    // mark word bank
+    const wbEl = document.getElementById('w-' + correctAnswer);
+    if (wbEl) wbEl.classList.add('used');
+
+    updateScore();
+
+    if (answered.size === TOTAL) {
+      setTimeout(showFinal, 800);
+    }
+  }
+
+  function updateScore() {
+    document.getElementById('scoreNum').textContent = correct;
+    document.getElementById('scoreTotal').textContent = answered.size + ' / ' + TOTAL;
+    document.getElementById('progressFill').style.width = (answered.size / TOTAL * 100) + '%';
+  }
+
+  function showFinal() {
+    const pct = Math.round(correct / TOTAL * 100);
+    const screen = document.getElementById('finalScreen');
+    document.getElementById('finalScore').textContent = correct + ' / ' + TOTAL + ' correct (' + pct + '%)';
+
+    if (pct === 100) {
+      document.getElementById('finalEmoji').textContent = '🏆';
+      document.getElementById('finalTitle').textContent = 'Perfect score!';
+      document.getElementById('finalMsg').textContent = 'You know all the clothes and accessories vocabulary. Amazing!';
+    } else if (pct >= 75) {
+      document.getElementById('finalEmoji').textContent = '🎉';
+      document.getElementById('finalTitle').textContent = 'Great job!';
+      document.getElementById('finalMsg').textContent = 'Really good work! Review the words you missed and try again.';
+    } else if (pct >= 50) {
+      document.getElementById('finalEmoji').textContent = '💪';
+      document.getElementById('finalTitle').textContent = 'Good effort!';
+      document.getElementById('finalMsg').textContent = 'You\'re getting there! Look at the word bank and try once more.';
+    } else {
+      document.getElementById('finalEmoji').textContent = '📖';
+      document.getElementById('finalTitle').textContent = 'Keep practising!';
+      document.getElementById('finalMsg').textContent = 'Read the descriptions carefully — they are full of clues! Try again.';
+    }
+
+    screen.classList.add('shown');
+    screen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function resetAll() {
+    answered.clear();
+    correct = 0;
+    updateScore();
+    document.getElementById('finalScreen').classList.remove('shown');
+
+    document.querySelectorAll('.item-card').forEach(c => {
+      c.classList.remove('correct-card', 'wrong-card');
+    });
+    document.querySelectorAll('.answer-opt').forEach(b => {
+      b.classList.remove('selected-correct','selected-wrong','show-correct','disabled');
+    });
+    document.querySelectorAll('.feedback').forEach(f => {
+      f.className = 'feedback';
+      f.textContent = '';
+    });
+    document.querySelectorAll('.wb-word').forEach(w => w.classList.remove('used'));
+  }
+
+  function switchSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
